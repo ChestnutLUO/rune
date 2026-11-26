@@ -116,7 +116,10 @@ fn start_with(width: u32, height: u32, readback: bool) -> Option<(Visualizer, Fe
         _turn: turn,
     };
     await_first_frame(FIRST_FRAME_WAIT, || {
-        (visualizer.latest_frame().is_some(), visualizer.status())
+        // The status first: a render thread that stops right after its first frame has shown
+        // one, which a status read after the frame would miss.
+        let status = visualizer.status();
+        (visualizer.latest_frame().is_some(), status)
     });
     Some((visualizer, feeder))
 }
