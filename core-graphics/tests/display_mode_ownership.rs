@@ -7,7 +7,7 @@ extern crate foreign_types;
 use core_foundation::array::{CFArray, CFArrayGetCount, CFArrayGetValueAtIndex};
 use core_foundation::base::{CFGetRetainCount, CFIndex, CFType, TCFType};
 use core_graphics::display::{
-    CGDirectDisplayID, CGDisplayCopyAllDisplayModes, CGDisplayMode, CGMainDisplayID,
+    CGDirectDisplayID, CGDisplay, CGDisplayCopyAllDisplayModes, CGDisplayMode, CGMainDisplayID,
 };
 use foreign_types::ForeignType;
 use std::{mem, ptr};
@@ -76,6 +76,11 @@ fn each_enumerated_mode_owns_one_reference_of_its_own() {
 
 #[test]
 fn a_display_without_modes_lists_none() {
-    // No display has this ID: IDs are small numbers the window server hands out.
-    assert!(CGDisplayMode::all_display_modes(0xdead_beef, ptr::null()).is_none());
+    // 0 stands for the main display, so the unknown ID is the first other one that no display
+    // in use has.
+    let active = CGDisplay::active_displays().expect("list the displays in use");
+    let unknown = (1..)
+        .find(|id| !active.contains(id))
+        .expect("an ID no display has");
+    assert!(CGDisplayMode::all_display_modes(unknown, ptr::null()).is_none());
 }
