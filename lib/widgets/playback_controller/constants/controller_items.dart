@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -25,6 +23,7 @@ import '../../../providers/visualizer_lab.dart';
 import '../../../providers/renderer_attachment.dart';
 import '../../../providers/request_capabilities.dart';
 import '../../../providers/library_open_state.dart';
+import '../../../utils/shortcut_label.dart';
 import '../../../utils/visualizer_supported.dart';
 
 import '../lyric_button.dart';
@@ -90,6 +89,28 @@ String _coverWallTitle(BuildContext context, {bool listen = true}) =>
     ? S.of(context).visualizer
     : S.of(context).coverWall;
 
+// Each shortcut is named once, so the key that is bound and the hint a menu
+// shows for it cannot drift apart.
+const _previousShortcut = SingleActivator(
+  LogicalKeyboardKey.arrowLeft,
+  control: true,
+);
+const _playPauseShortcut = SingleActivator(
+  LogicalKeyboardKey.keyP,
+  control: true,
+);
+const _nextShortcut = SingleActivator(
+  LogicalKeyboardKey.arrowRight,
+  control: true,
+);
+const _playlistShortcut = SingleActivator(
+  LogicalKeyboardKey.keyQ,
+  control: true,
+);
+const _coverWallShortcut = SingleActivator(LogicalKeyboardKey.keyN, alt: true);
+const _lyricsShortcut = SingleActivator(LogicalKeyboardKey.keyL, alt: true);
+const _fullscreenShortcut = SingleActivator(LogicalKeyboardKey.f11);
+
 List<ControllerEntry> controllerItems = [
   ControllerEntry(
     id: 'previous',
@@ -101,9 +122,7 @@ List<ControllerEntry> controllerItems = [
     icon: (context) => Symbols.skip_previous,
     titleBuilder: (context) => S.of(context).previous,
     subtitleBuilder: (context) => S.of(context).previousSubtitle,
-    shortcuts: [
-      const SingleActivator(LogicalKeyboardKey.arrowLeft, control: true),
-    ],
+    shortcuts: [_previousShortcut],
     onShortcut: (context) {
       final statusProvider = Provider.of<PlaybackStatusProvider>(
         context,
@@ -148,7 +167,7 @@ List<ControllerEntry> controllerItems = [
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(S.of(context).previous),
-            const ShortcutText('Ctrl+←'),
+            const ShortcutText(_previousShortcut),
           ],
         ),
         onPressed: notReady
@@ -180,7 +199,7 @@ List<ControllerEntry> controllerItems = [
     subtitleBuilder: (context) => S.of(context).playPauseSubtitle,
     shortcuts: [
       const SingleActivator(LogicalKeyboardKey.space),
-      const SingleActivator(LogicalKeyboardKey.keyP, control: true),
+      _playPauseShortcut,
     ],
     onShortcut: (context) {
       final statusProvider = Provider.of<PlaybackStatusProvider>(
@@ -246,7 +265,7 @@ List<ControllerEntry> controllerItems = [
             status.state == PlaybackState.playing
                 ? Text(S.of(context).pause)
                 : Text(S.of(context).play),
-            const ShortcutText('Ctrl+P'),
+            const ShortcutText(_playPauseShortcut),
           ],
         ),
         onPressed: notReady
@@ -270,9 +289,7 @@ List<ControllerEntry> controllerItems = [
     icon: (context) => Symbols.skip_next,
     titleBuilder: (context) => S.of(context).next,
     subtitleBuilder: (context) => S.of(context).nextSubtitle,
-    shortcuts: [
-      const SingleActivator(LogicalKeyboardKey.arrowRight, control: true),
-    ],
+    shortcuts: [_nextShortcut],
     onShortcut: (context) {
       final statusProvider = Provider.of<PlaybackStatusProvider>(
         context,
@@ -315,7 +332,10 @@ List<ControllerEntry> controllerItems = [
         leading: const Icon(Symbols.skip_next),
         text: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [Text(S.of(context).next), const ShortcutText('Ctrl+→')],
+          children: [
+            Text(S.of(context).next),
+            const ShortcutText(_nextShortcut),
+          ],
         ),
         onPressed: notReady
             ? null
@@ -485,7 +505,7 @@ List<ControllerEntry> controllerItems = [
     icon: (context) => Symbols.list_alt,
     titleBuilder: (context) => S.of(context).playlist,
     subtitleBuilder: (context) => S.of(context).playlistSubtitle,
-    shortcuts: [const SingleActivator(LogicalKeyboardKey.keyQ, control: true)],
+    shortcuts: [_playlistShortcut],
     onShortcut: (context) {
       showPlayQueueDialog(context);
     },
@@ -499,7 +519,7 @@ List<ControllerEntry> controllerItems = [
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(S.of(context).playlist),
-            const ShortcutText('Ctrl+Q'),
+            const ShortcutText(_playlistShortcut),
           ],
         ),
         onPressed: () {
@@ -573,7 +593,7 @@ List<ControllerEntry> controllerItems = [
     subtitleBuilder: (context) => _coverWallShowsVisualizer(context)
         ? S.of(context).coverWallVisualizerSubtitle
         : S.of(context).coverWallSubtitle,
-    shortcuts: [const SingleActivator(LogicalKeyboardKey.keyN, alt: true)],
+    shortcuts: [_coverWallShortcut],
     onShortcut: (context) {
       showCoverArtWall();
     },
@@ -588,7 +608,7 @@ List<ControllerEntry> controllerItems = [
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(_coverWallTitle(context, listen: false)),
-            ShortcutText(Platform.isMacOS ? '⌥+N' : 'Alt+N'),
+            const ShortcutText(_coverWallShortcut),
           ],
         ),
         onPressed: () {
@@ -603,7 +623,7 @@ List<ControllerEntry> controllerItems = [
     icon: (context) => Symbols.lyrics,
     titleBuilder: (context) => S.of(context).lyrics,
     subtitleBuilder: (context) => S.of(context).lyricsSubtitle,
-    shortcuts: [const SingleActivator(LogicalKeyboardKey.keyL, alt: true)],
+    shortcuts: [_lyricsShortcut],
     onShortcut: (context) {
       showLyrics();
     },
@@ -617,7 +637,7 @@ List<ControllerEntry> controllerItems = [
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(S.of(context).lyrics),
-            ShortcutText(Platform.isMacOS ? '⌥+L' : 'Alt+L'),
+            const ShortcutText(_lyricsShortcut),
           ],
         ),
         onPressed: () {
@@ -638,7 +658,7 @@ List<ControllerEntry> controllerItems = [
     },
     titleBuilder: (context) => S.of(context).fullscreen,
     subtitleBuilder: (context) => S.of(context).fullscreenSubtitle,
-    shortcuts: [const SingleActivator(LogicalKeyboardKey.f11)],
+    shortcuts: [_fullscreenShortcut],
     onShortcut: (context) {
       final fullScreen = Provider.of<FullScreenProvider>(
         context,
@@ -662,7 +682,10 @@ List<ControllerEntry> controllerItems = [
             : const Icon(Symbols.fullscreen),
         text: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [Text(S.of(context).fullscreen), const ShortcutText('F11')],
+          children: [
+            Text(S.of(context).fullscreen),
+            const ShortcutText(_fullscreenShortcut),
+          ],
         ),
         onPressed: () {
           Navigator.pop(context);
@@ -705,16 +728,18 @@ List<ControllerEntry> controllerItems = [
   ),
 ];
 
+/// The hint a menu entry shows for [activator], written the way the running
+/// platform writes shortcuts (see [shortcutLabel]).
 class ShortcutText extends StatelessWidget {
-  const ShortcutText(this.text, {super.key});
+  const ShortcutText(this.activator, {super.key});
 
-  final String text;
+  final SingleActivator activator;
 
   @override
   Widget build(BuildContext context) {
     final theme = FluentTheme.of(context);
     return Text(
-      text,
+      shortcutLabel(activator),
       style: theme.typography.caption?.apply(
         color: theme.resources.textFillColorPrimary.withAlpha(80),
       ),
